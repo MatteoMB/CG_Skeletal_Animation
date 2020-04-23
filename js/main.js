@@ -3,6 +3,7 @@
  var gl = null; // webGL context
  var canvas = null;
  var shader = null;
+ var button = null;
 
  /* time variables  */
  var time = null;
@@ -40,6 +41,8 @@
 	shader.lightOppositeDir = [1,1,1,0];
 	canvas.onmousemove = myMouseMove;
 	canvas.onwheel = myMouseWheel;
+
+	button = document.getElementById("toggleAnimation");
 
 	Trackball.width = parseInt(canvas.getAttribute("width"));
 	Trackball.height = parseInt(canvas.getAttribute("height"));
@@ -171,10 +174,12 @@ function toggleAnimation(){
 		stopAnimationTS = elapsedTime;
 		cancelAnimationFrame(animationRequestID);
 		animationRequestID = undefined;
+		button.setAttribute("value", "Restart animation");
 	}
 	else {
 		restartingAnimation = true;
 		animationRequestID = requestAnimationFrame(animate);
+		button.setAttribute("value", "Start animation");
 	}
 }	 
 
