@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Skeletal animation</title>
+		<style>
+			body,canvas { margin: 0; padding: 0; }
+			canvas { display: block; }
+			div,span {margin: 10px; padding:10px; }
+		</style>
+		<script type="text/javascript" src="js/modules/matrices.js"></script>
+		<script type="text/javascript" src="js/modules/mesh.js"></script>
+		<script type="text/javascript" src="js/modules/matrixStack.js"></script>
+		<script type="text/javascript" src="js/modules/Trackball.js"></script>
+		<script type="text/javascript" src="js/modules/Shader.js"></script>
+		<script type="text/javascript" src="js/modules/KeyframeNode.js"></script>
+		<script type="text/javascript" src="js/AnimationKeyframes.js"></script>
+		<script type="text/javascript" src="js/Blinn-Phong.js"></script>
+		<script type="text/javascript" src="js/main.js"></script>
+	</head>
+	<body> 
+		<canvas 
+		oncontextmenu="return false"
+		id     = "A-CANVAS"
+		width  = "900px"
+		height = "480px"
+		style  = "border: 1px solid black"
+	></canvas>
+	<div>
+		Click on button to toggle animations
+		<span>
+			<input type="button" onclick="toggleAnimation()" value="Toggle Animations">
+		</span>
+	</div>
+</body>
+</html>
