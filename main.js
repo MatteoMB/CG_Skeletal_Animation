@@ -14,7 +14,7 @@
  // total time in which the animation was paused
  var pausedTime = 0;
  // timestamp of the last animation
- var freezeTimestamp = 0;
+ var freezeTS = 0;
  
  var restartingAnimation = true;
 
@@ -59,13 +59,11 @@ function FullCyl(cyl,cone,k){
 	// top base: flattened cone 
 	model.init();
 	model.translate(0,1,0);
-	model.scale(1,0.001,1);
 	cyl_node.children.push(new Node(mat2,model.pop(),"top base",cone)); 
 	// bottom base: flattened cone
 	model.init();
 	model.translate(0,-1,0);
 	model.rotate(vec3(1,0,0),180);
-	model.scale(1,0.001,1);
 	cyl_node.children.push(new Node(mat2,model.pop(),"bottom base",cone)); 
 	return cyl_node;
 	} 
@@ -85,7 +83,7 @@ function FullCyl(cyl,cone,k){
 	cyl.storeFromCpu( gl, unaMesh );
 	// normals of cone are obtained for each vertex averaging the normals of
 	// the faces adjacent to them, using areas as weights
-	unaMesh.makeCone(60 );
+	unaMesh.makeCone(60,flat=true );
 	cone.storeFromCpu( gl, unaMesh );
 	unaMesh.makeCube();
 	cube.storeFromCpu( gl, unaMesh );
@@ -159,18 +157,18 @@ function draw(time) {
  	if (event.buttons==2)
 		Trackball.pan(mouseX - oldX,mouseY - oldY);
 	if(!animationRequestID)
-		draw(freezeTimestamp);
+		draw(freezeTS);
  }
 	 
 function myMouseWheel( event ) {
 	if(event.deltaY == 0) return;
 	Trackball.dolly(event.deltaY);
 	if(!animationRequestID)
-		draw(freezeTimestamp);
+		draw(freezeTS);
 	}
 function toggleAnimation(){
 	if (animationRequestID){
-		freezeTimestamp = elapsedTime - pausedTime;
+		freezeTS = elapsedTime - pausedTime;
 		stopAnimationTS = elapsedTime;
 		cancelAnimationFrame(animationRequestID);
 		animationRequestID = undefined;
@@ -179,7 +177,7 @@ function toggleAnimation(){
 	else {
 		restartingAnimation = true;
 		animationRequestID = requestAnimationFrame(animate);
-		button.setAttribute("value", "Start animation");
+		button.setAttribute("value", "Stop animation");
 	}
 }	 
 

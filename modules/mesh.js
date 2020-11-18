@@ -288,17 +288,18 @@ var CpuMesh = {
       setQuadFace( 20, 1,0,2,3 );
    },
 
-   makeCone: function( /*int*/ res ) {
+   makeCone: function( /*int*/ res, flat=false ) {
+      var z_value = flat? 0:-1;
       this.allocate( res +1, res );
-      
+
       for (var i=0; i<res; i++) {
          var a = 2 * Math.PI * i/res;
          var s = Math.sin(a);
          var c = Math.cos(a);
-         this.setVert( i ,c,-1, s );
+         this.setVert( i ,c,z_value, s );
       }
       // vertex
-      this.setVert( res,  0,1,0 );
+      this.setVert( res,  0,-z_value,0 );
       // connect each couple of subsequent points with the vertex
       for (var i=0; i<res; i++) {
          var j = (i+1)%res;

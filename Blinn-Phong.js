@@ -60,6 +60,8 @@ Blinn_Phong.setUniforms = function(model,view,projection,material){
     var halfWay = [];
 
     var modelInv = invMatrix4(model);
+    if(modelInv === undefined)
+        console.log(modelInv)
     var viewInv = view.inverse;   
     var ldir = multMatrixVec( modelInv, this.lightOppositeDir);	 // L <- inv(V) * L
     ldir = normalize(ldir);
