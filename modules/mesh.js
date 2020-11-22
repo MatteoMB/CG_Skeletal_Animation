@@ -1,24 +1,35 @@
 
 /* GpuMesh:
   (indices to buffers holding) a mesh on video card RAM */
-var GpuMesh = {
-   bufferVerts : 0,
-   bufferTris : 0,
-   nTris : 0,
-    minX: 0,                  // ABB limits
-    maxX: 0,
-    minY: 0,
-    maxY: 0,
-    minZ: 0,
-    maxZ: 0,
-   
-   init : function(gl) {
-       this.bufferVerts = gl.createBuffer();
-       this.bufferTris = gl.createBuffer();
-       this.nTris = 0;
-   },
-   
-   draw : function(gl) {
+class GpuMesh{
+   constructor(gl, mesh) {
+        this.gl = gl;
+        this.nTris = mesh.tris.length / 3;
+        this.minX = mesh.minX;
+        this.maxX = mesh.maxX;
+        this.minY = mesh.minY;
+        this.maxY = mesh.maxY;
+        this.minZ = mesh.minZ;
+        this.maxZ = mesh.maxZ;
+  
+        this.bufferVerts = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferVerts );
+        gl.bufferData(
+           gl.ARRAY_BUFFER, 
+           mesh.verts, 
+           gl.STATIC_DRAW
+        );
+         
+        this.bufferTris = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufferTris );
+        gl.bufferData(
+           gl.ELEMENT_ARRAY_BUFFER, 
+           mesh.tris, 
+           gl.STATIC_DRAW
+        );
+   }
+   draw() {
+      var gl = this.gl
       gl.bindBuffer(
          gl.ARRAY_BUFFER, 
          this.bufferVerts 
@@ -44,81 +55,55 @@ var GpuMesh = {
          gl.UNSIGNED_SHORT, 
          0
       );
-   },
+   };
    
-   storeFromCpu : function( gl, mesh ) {
-        this.nTris = mesh.tris.length / 3;
-        this.minX = mesh.minX;
-        this.maxX = mesh.maxX;
-        this.minY = mesh.minY;
-        this.maxY = mesh.maxY;
-        this.minZ = mesh.minZ;
-        this.maxZ = mesh.maxZ;
-  
-        this.bufferVerts = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferVerts );
-        gl.bufferData(
-           gl.ARRAY_BUFFER, 
-           mesh.verts, 
-           gl.STATIC_DRAW
-        );
-         
-        this.bufferTris = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufferTris );
-        gl.bufferData(
-           gl.ELEMENT_ARRAY_BUFFER, 
-           mesh.tris, 
-           gl.STATIC_DRAW
-        );
-   }
 }
 
 /*  CpuMesh: a mesh in main memory */
-var CpuMesh = {
-
-   /* fields */
-    verts: new Float32Array,  // geo + norms
-    tris: new Uint16Array,    // connectivity
-    minX: 0,                  // ABB limits
-    maxX: 0,
-    minY: 0,
-    maxY: 0,
-    minZ: 0,
-    maxZ: 0,
-   
+class CpuMesh{
+   constructor(){
+      this.verts = new Float32Array;  // geo + norms
+      this.tris = new Uint16Array;    // connectivity
+      this.minX = 0;                  // ABB limits
+      this.maxX = 0;
+      this.minY = 0;
+      this.maxY = 0;
+      this.minZ = 0;
+      this.maxZ = 0;
+   }
    /* methods */  
   
 	// shortcuts
-	vx: function (i){ return  this.verts[i*6+0]; },
-	vy: function (i){ return  this.verts[i*6+1]; },
-	vz: function (i){ return  this.verts[i*6+2]; },
+   vx(i) { return  this.verts[i*6+0]; }
+	vy(i) { return  this.verts[i*6+1]; }
+	vz(i) { return  this.verts[i*6+2]; }
 
-	nx: function (i){ return  this.verts[i*6+3]; },
-	ny: function (i){ return  this.verts[i*6+4]; },
-	nz: function (i){ return  this.verts[i*6+5]; },
+	nx(i) { return  this.verts[i*6+3]; }
+	ny(i){ return  this.verts[i*6+4]; }
+	nz(i){ return  this.verts[i*6+5]; }
 	
-	nv: function (){ return this.verts.length/6; },
-	nf: function (){ return this.tris.length/3; },
-	
+	nv(){ return this.verts.length/6; }
+	nf(){ return this.tris.length/3; }
+
 	// returns position of vert number i
-	posOfVert: function( i ){
+	posOfVert(i){
 		return [ this.vx(i), this.vy(i), this.vz(i) ];
-	},
+	}
 
 	// returns normal of vert number i
-	normalOfVert: function( i ){
+	normalOfVert(i){
 		return [ this.nx(i), this.ny(i), this.nz(i) ];
-	},
+	}
 	
 	// sets the normal of vert i
-	setNormalOfVert: function( i , n ){
+	setNormalOfVert(i, n){
 		this.verts[i*6+3] = n[0];
 		this.verts[i*6+4] = n[1];
 		this.verts[i*6+5] = n[2];
-	},
+	}
 	
 	// returns normal of face number i
-	normalOfFace: function(i){
+	normalOfFace(i){
 		var vi, vj, vk;
 		vi = this.tris[ i*3 + 0 ];
 		vj = this.tris[ i*3 + 1 ];
@@ -129,10 +114,10 @@ var CpuMesh = {
 		pk = this.posOfVert( vk );
 		var norm = cross( subtract( pi, pk ), subtract( pj, pk ) );
 		return normalize(norm);
-	},
+	}
 	
     // input mesh from OFF format - tris only
-	importOFFfromString:function (string){
+	importOFFfromString(string){
         string.replace("\n ","\n");
 //		var tokens = string.split(/[\n' ']/);
 		var tokens = string.split(/\s+/);
@@ -167,9 +152,9 @@ var CpuMesh = {
 			this.tris[ i*3 + 2 ] = tokens[ti++]; // v2
 		}
 		console.log("Loaded "+nf+" faces and "+nv+" vertices");
-	},
+	}
 	
-	updateAABB: function(){
+	updateAABB(){
 		if (this.nv()==0) return;
 		this.minX = this.maxX = this.vx(0);
 		this.minY = this.maxY = this.vy(0);
@@ -182,9 +167,9 @@ var CpuMesh = {
 			if (this.minZ>this.vz(i)) this.minZ = this.vz(i);
 			if (this.maxZ<this.vz(i)) this.maxZ = this.vz(i);
 		}
-	},
+	}
 	
-	updateNormals: function(){
+	updateNormals(){
 		// 1: clear all normals
 		for (var i=0; i<this.nv(); i++) this.setNormalOfVert(i, [0,0,0] );
 		
@@ -205,11 +190,11 @@ var CpuMesh = {
 		// ciclo 3: normalize all normals
 		for (var i=0; i<this.nv(); i++) 
 			this.setNormalOfVert( i, normalize( this.normalOfVert(i) )  );
-	},
+	}
 
 	// centers and rescales the mesh
 	// invoke AFTER updating AABB
-	autocenterNormalize: function(){
+	autocenterNormalize(){
 		var tr = translationMatrix( 
 		    -(this.minX+this.maxX)/2.0,
 		    -(this.minY+this.maxY)/2.0,
@@ -230,11 +215,11 @@ var CpuMesh = {
         this.maxY = (this.maxY-this.minY)/dimMax;
         this.minZ = (this.minZ-this.maxZ)/dimMax;
         this.maxZ = (this.maxZ-this.minZ)/dimMax;
-    },
+    }
 
 	// returns the matrix which centers the mesh and scales it 
 	// invoke AFTER updating AABB
-	autocenteringMatrix: function(){
+	autocenteringMatrix(){
 		var tr = translationMatrix( 
 		    -(this.minX+this.maxX)/2.0,
 		    -(this.minY+this.maxY)/2.0,
@@ -247,8 +232,38 @@ var CpuMesh = {
 		var sc = scalingMatrix( 2.0/dimMax );
 		
 		return multMatrix( sc , tr );
-	},
+   }
+   /* private methods */
+   
+   allocate( nverts, ntris ) {
+      this.verts = new Float32Array( nverts*6 ); 
+      this.tris = new Uint16Array( ntris*3 );
+   }
 
+   setTri( i, va, vb, vc ){
+      this.tris[ i*3 +0 ] = va;
+      this.tris[ i*3 +1 ] = vb;
+      this.tris[ i*3 +2 ] = vc;
+   }
+   
+   setQuad( i, va, vb, vc, vd){
+      // diagonal split!
+      this.setTri( i+0, va, vb, vd );
+      this.setTri( i+1, vd, vb, vc );
+   }
+   
+   setVert( i, x,y,z ){
+      this.verts[ i*6+0 ] = x;
+      this.verts[ i*6+1 ] = y;
+      this.verts[ i*6+2 ] = z;
+   }
+   
+   setNorm( i, nx,ny,nz ){
+      this.verts[ i*6+3 ] = nx;
+      this.verts[ i*6+4 ] = ny;
+      this.verts[ i*6+5 ] = nz;
+   }
+}
        
     
     
@@ -256,107 +271,85 @@ var CpuMesh = {
     /* Procedural meshes */
     
     // Cube with vertex seams: six quad faces joined in a vertex array
-    makeCube: function() {
-      this.allocate( 24 , 12 );
+class Cube extends CpuMesh {
+   setQuadFace(i, v1, v2, v3, v4){
+      var v1 = this.vertices[v1];
+      var v2 = this.vertices[v2];
+      var v3 = this.vertices[v3];
+      var v4 = this.vertices[v4];
+      super.setVert( i  , v1[0],v1[1],v1[2]);
+      super.setVert( i+1, v2[0],v2[1],v2[2]);
+      super.setVert( i+2, v3[0],v3[1],v3[2]);
+      super.setVert( i+3, v4[0],v4[1],v4[2]);
+      // create faces
+      super.setQuad( i/2,   i, i+1, i+2, i+3 );
+      // set normals
+      var n = super.normalOfFace(i/2+1);
+      super.setNormalOfVert( i, n);
+      super.setNormalOfVert( i+1, n);
+      super.setNormalOfVert( i+2, n);
+      super.setNormalOfVert( i+3, n);
+   }
+   constructor(){
+      super();
+      super.allocate( 24 , 12 );
       //dictionary of vertices
-      vertices = [ [-1,-1,+1],   [ +1,-1,+1 ], [ -1,-1,-1 ], [ +1,-1,-1 ],
-                   [ -1,+1,+1 ], [ +1,+1,+1 ], [ -1,+1,-1 ], [ +1,+1,-1 ] ];
+      this.vertices = [ [-1,-1,+1],   [ +1,-1,+1 ], [ -1,-1,-1 ], [ +1,-1,-1 ],
+                     [ -1,+1,+1 ], [ +1,+1,+1 ], [ -1,+1,-1 ], [ +1,+1,-1 ] ];
+      this.setQuadFace( 0,  0,1,5,4 ); // setta anche 1
+      this.setQuadFace( 4,  3,2,6,7 );
+      this.setQuadFace( 8,  2,0,4,6 );
+      this.setQuadFace( 12, 1,3,7,5 );
+      this.setQuadFace( 16, 5,7,6,4 );
+      this.setQuadFace( 20, 1,0,2,3 );
+   }
+}
 
-      var setQuadFace = (i, v1, v2, v3, v4) => {
-         var v1 = vertices[v1];
-         var v2 = vertices[v2];
-         var v3 = vertices[v3];
-         var v4 = vertices[v4];
-         this.setVert( i  , v1[0],v1[1],v1[2]);
-         this.setVert( i+1, v2[0],v2[1],v2[2]);
-         this.setVert( i+2, v3[0],v3[1],v3[2]);
-         this.setVert( i+3, v4[0],v4[1],v4[2]);
-         // create faces
-         this.setQuad( i/2,   i, i+1, i+2, i+3 );
-         // set normals
-         var n = this.normalOfFace(i/2+1);
-         this.setNormalOfVert( i, n);
-         this.setNormalOfVert( i+1, n);
-         this.setNormalOfVert( i+2, n);
-         this.setNormalOfVert( i+3, n);
-      }
-      setQuadFace( 0, 0,1,5,4 ); // setta anche 1
-      setQuadFace( 4, 3,2,6,7 );
-      setQuadFace( 8, 2,0,4,6 );
-      setQuadFace( 12, 1,3,7,5 );
-      setQuadFace( 16, 5,7,6,4 );
-      setQuadFace( 20, 1,0,2,3 );
-   },
-
-   makeCone: function( /*int*/ res, flat=false ) {
+class Cone extends CpuMesh {
+   constructor(/*int*/ res, flat=false ){
+      super();
       var z_value = flat? 0:-1;
-      this.allocate( res +1, res );
+      super.allocate( res +1, res );
 
       for (var i=0; i<res; i++) {
          var a = 2 * Math.PI * i/res;
          var s = Math.sin(a);
          var c = Math.cos(a);
-         this.setVert( i ,c,z_value, s );
+         super.setVert( i ,c,z_value, s );
       }
       // vertex
       this.setVert( res,  0,-z_value,0 );
       // connect each couple of subsequent points with the vertex
       for (var i=0; i<res; i++) {
          var j = (i+1)%res;
-         this.setTri( i,  j, i, res );
+         super.setTri( i,  j, i, res );
       }
-      this.updateNormals();
-   },
+      super.updateNormals();
+   }
+}
 
-   makeCylinder: function( /*int*/ res ) {
-      this.allocate( res*2, res*2 );
+class Cylinder extends CpuMesh {
+   constructor( /*int*/ res ){
+      super()
+      super.allocate( res*2, res*2 );
       
       for (var i=0; i<res; i++) {
          var a = 2 * Math.PI * i/res;
          var s = Math.sin(a);
          var c = Math.cos(a);
-         this.setVert( i     ,  c,-1, s );
-         this.setVert( i+res ,  c,+1, s );
-         this.setNorm( i     ,  c, 0, s );
-         this.setNorm( i+res ,  c, 0, s );
+         super.setVert( i     ,  c,-1, s );
+         super.setVert( i+res ,  c,+1, s );
+         super.setNorm( i     ,  c, 0, s );
+         super.setNorm( i+res ,  c, 0, s );
       }
       for (var i=0; i<(res*2); i++) {
          var j = (i+1)%res;
-         this.setTri( 2*i,  i,i+res,j+res );
-         this.setTri( 2*i+1, j,i,j+res );
+         super.setTri( 2*i,  i,i+res,j+res );
+         super.setTri( 2*i+1, j,i,j+res );
       }
-   },
+}
 
-   /* private methods */
-   
-   allocate: function( nverts, ntris ) {
-      this.verts = new Float32Array( nverts*6 ); 
-      this.tris = new Uint16Array( ntris*3 );
-   },
 
-   setTri: function( i, va, vb, vc ){
-      this.tris[ i*3 +0 ] = va;
-      this.tris[ i*3 +1 ] = vb;
-      this.tris[ i*3 +2 ] = vc;
-   },
-   
-   setQuad: function( i, va, vb, vc, vd){
-      // diagonal split!
-      this.setTri( i+0, va, vb, vd );
-      this.setTri( i+1, vd, vb, vc );
-   },
-   
-   setVert: function( i, x,y,z ){
-      this.verts[ i*6+0 ] = x;
-      this.verts[ i*6+1 ] = y;
-      this.verts[ i*6+2 ] = z;
-   },
-   
-   setNorm: function( i, nx,ny,nz ){
-      this.verts[ i*6+3 ] = nx;
-      this.verts[ i*6+4 ] = ny;
-      this.verts[ i*6+5 ] = nz;
-   },
-   
-   
+
+
 }

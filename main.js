@@ -68,25 +68,10 @@ function FullCyl(cyl,cone,k){
 	return cyl_node;
 	} 
  function setupWhatToDraw() {  
-	 // CpuMesh and GpuMesh defined in module mesh.js 
-	// unique CPU mesh buffer to transfer data to the GPU
-	var unaMesh = Object.create( CpuMesh );
 	// various GPU meshes used by the program
-	var cyl = Object.create( GpuMesh );
-	var cone = Object.create( GpuMesh );
-	var cube = Object.create( GpuMesh );
-	cyl.init(gl);
-	cone.init(gl);
-	cube.init(gl);
-	// create & transfer meshes
-	unaMesh.makeCylinder(60);
-	cyl.storeFromCpu( gl, unaMesh );
-	// normals of cone are obtained for each vertex averaging the normals of
-	// the faces adjacent to them, using areas as weights
-	unaMesh.makeCone(60,flat=true );
-	cone.storeFromCpu( gl, unaMesh );
-	unaMesh.makeCube();
-	cube.storeFromCpu( gl, unaMesh );
+	var cyl = new GpuMesh(gl,new Cylinder(60));
+	var cone = new GpuMesh(gl,new Cone(60,flat=true));
+	var cube = new GpuMesh(gl,new Cube());
 	// create a full cylinder and animate it
 	model.init();
 	var keyframe = AnimationKeyframes();

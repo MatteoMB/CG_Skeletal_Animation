@@ -52,7 +52,7 @@ var Trackball = {
 		this.y -= dy * 0.001 * this.d;
 	},
 	dolly: function(deltaY) {
-		var d = this.d*(1+50*deltaY/480);
+		var d = this.d*(1+deltaY/(3*Math.abs(deltaY)));
         if(d < 0.001) 
 			this.d = 0.001;
 		else this.d = d;
