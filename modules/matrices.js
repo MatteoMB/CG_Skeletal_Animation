@@ -270,3 +270,42 @@ function quaternion2Matrix(a){
 function quaternion2AxisAngle(q){
 	return [normalize(V(q)),2*Math.acos(W(q))];
 }
+
+
+/* Interpolation utilities */
+
+// shortening-code functions
+function key(elem){
+    return Object.keys(elem)[0];
+}
+function val(elem){
+    return Object.values(elem)[0];
+}
+// TRS matrix builder
+function TRS(t,r,s){
+	var m0 = translationMatrix(t[0],t[1],t[2]);
+	var m1 = quaternion2Matrix(r);
+	var m2 = scalingMatrix(s[0],s[1],s[2]);
+	return multMatrix(multMatrix(m0,m1),m2);
+}
+// linear interpolation between points
+function lerp(p0,p1,value){
+	var weight = (value-key(p0))/(key(p1)-key(p0));
+	return sum(scalarMult((1-weight),val(p0)),scalarMult(weight,val(p1)));
+}
+// spherical interpolation
+function slerp(q0, q1, value){
+	var weight = (value-key(q0))/(key(q1)-key(q0));
+	var q0 = normalize(val(q0));
+	var q1 = normalize(val(q1));
+	var d = dot(q0, q1);
+	// if negative dot product, the quaternions have opposite handedness
+	// and slerp won't take the shorter path. Fix by reversing one quaternion.
+	if(d < 0){
+		q1 = scalarMult(-1,q1);
+		d *= -1;
+	}
+	var theta = Math.acos(d) * weight;                       // angle between q0 and result
+	var q2 = normalize(subtract(q1,scalarMult(d,q0)));        //{q0, q2} now orthonormal basis
+	return  sum(scalarMult(Math.cos(theta),q0),scalarMult(Math.sin(theta),q2));
+}

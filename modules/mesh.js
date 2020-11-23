@@ -1,4 +1,3 @@
-
 /* GpuMesh:
   (indices to buffers holding) a mesh on video card RAM */
 class GpuMesh{
@@ -28,25 +27,20 @@ class GpuMesh{
            gl.STATIC_DRAW
         );
    }
-   draw() {
+   draw(shader) {
       var gl = this.gl
-      gl.bindBuffer(
-         gl.ARRAY_BUFFER, 
-         this.bufferVerts 
-      );
       
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferVerts );
+      var posAttributeIndex = gl.getAttribLocation(shader.program, "vertexPos");
       gl.enableVertexAttribArray(posAttributeIndex);
       gl.vertexAttribPointer(posAttributeIndex , 
                3, gl.FLOAT , false , 6*4, 0);
 
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufferTris );
+      var normAttributeIndex = gl.getAttribLocation(shader.program, "normal");
       gl.enableVertexAttribArray(normAttributeIndex);
       gl.vertexAttribPointer(normAttributeIndex , 
                3, gl.FLOAT , false , 6*4, 3*4);
-               
-      gl.bindBuffer( 
-         gl.ELEMENT_ARRAY_BUFFER, 
-         this.bufferTris 
-      );
       
       gl.drawElements( 
          gl.TRIANGLES, 
@@ -55,16 +49,16 @@ class GpuMesh{
          gl.UNSIGNED_SHORT, 
          0
       );
-   };
+   }
    
 }
 
 /*  CpuMesh: a mesh in main memory */
 class CpuMesh{
    constructor(){
-      this.verts = new Float32Array;  // geo + norms
-      this.tris = new Uint16Array;    // connectivity
-      this.minX = 0;                  // ABB limits
+      this.verts = null;  // geo + norms
+      this.tris = null;    // connectivity
+      this.minX = 0;        // ABB limits
       this.maxX = 0;
       this.minY = 0;
       this.maxY = 0;
@@ -72,7 +66,38 @@ class CpuMesh{
       this.maxZ = 0;
    }
    /* methods */  
-  
+
+   /* private methods */
+   
+   allocate( nverts, ntris ) {
+      this.verts = new Float32Array( nverts*6 ); 
+      this.tris = new Uint16Array( ntris*3 );
+   }
+
+   setTri( i, va, vb, vc ){
+      this.tris[ i*3 +0 ] = va;
+      this.tris[ i*3 +1 ] = vb;
+      this.tris[ i*3 +2 ] = vc;
+   }
+   
+   setQuad( i, va, vb, vc, vd){
+      // diagonal split!
+      this.setTri( i+0, va, vb, vd );
+      this.setTri( i+1, vd, vb, vc );
+   }
+   
+   setVert( i, x,y,z ){
+      this.verts[ i*6+0 ] = x;
+      this.verts[ i*6+1 ] = y;
+      this.verts[ i*6+2 ] = z;
+   }
+   
+   setNorm( i, nx,ny,nz ){
+      this.verts[ i*6+3 ] = nx;
+      this.verts[ i*6+4 ] = ny;
+      this.verts[ i*6+5 ] = nz;
+   }
+
 	// shortcuts
    vx(i) { return  this.verts[i*6+0]; }
 	vy(i) { return  this.verts[i*6+1]; }
@@ -233,36 +258,6 @@ class CpuMesh{
 		
 		return multMatrix( sc , tr );
    }
-   /* private methods */
-   
-   allocate( nverts, ntris ) {
-      this.verts = new Float32Array( nverts*6 ); 
-      this.tris = new Uint16Array( ntris*3 );
-   }
-
-   setTri( i, va, vb, vc ){
-      this.tris[ i*3 +0 ] = va;
-      this.tris[ i*3 +1 ] = vb;
-      this.tris[ i*3 +2 ] = vc;
-   }
-   
-   setQuad( i, va, vb, vc, vd){
-      // diagonal split!
-      this.setTri( i+0, va, vb, vd );
-      this.setTri( i+1, vd, vb, vc );
-   }
-   
-   setVert( i, x,y,z ){
-      this.verts[ i*6+0 ] = x;
-      this.verts[ i*6+1 ] = y;
-      this.verts[ i*6+2 ] = z;
-   }
-   
-   setNorm( i, nx,ny,nz ){
-      this.verts[ i*6+3 ] = nx;
-      this.verts[ i*6+4 ] = ny;
-      this.verts[ i*6+5 ] = nz;
-   }
 }
        
     
@@ -342,14 +337,11 @@ class Cylinder extends CpuMesh {
          super.setNorm( i     ,  c, 0, s );
          super.setNorm( i+res ,  c, 0, s );
       }
-      for (var i=0; i<(res*2); i++) {
+      for (var i=0; i<res; i++) {
          var j = (i+1)%res;
          super.setTri( 2*i,  i,i+res,j+res );
          super.setTri( 2*i+1, j,i,j+res );
       }
+   }
 }
 
-
-
-
-}

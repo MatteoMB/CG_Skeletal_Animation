@@ -36,8 +36,7 @@
  function setupWebGL() {
 	canvas = document.getElementById("A-CANVAS");
 	gl = canvas.getContext("experimental-webgl");  // or, "webgl"
-	shader = Object.create(Blinn_Phong);
-	shader.init(gl);
+	shader = new Blinn_Phong(gl);
 	shader.lightOppositeDir = [1,1,1,0];
 	canvas.onmousemove = myMouseMove;
 	canvas.onwheel = myMouseWheel;
@@ -55,16 +54,17 @@
 
 // draws a cylinder with bases
 function FullCyl(cyl,cone,k){
-	var cyl_node = new Node(mat2,model.pop(),"cylinder",cyl,k);
+	// var cyl_node = new Node(model.pop(),k);
+	var cyl_node = new MeshNode(mat2,model.pop(),cyl,k,"cylinder");
 	// top base: flattened cone 
 	model.init();
 	model.translate(0,1,0);
-	cyl_node.children.push(new Node(mat2,model.pop(),"top base",cone)); 
+	cyl_node.add(new MeshNode(mat2,model.pop(),cone,null,"top base")); 
 	// bottom base: flattened cone
 	model.init();
 	model.translate(0,-1,0);
 	model.rotate(vec3(1,0,0),180);
-	cyl_node.children.push(new Node(mat2,model.pop(),"bottom base",cone)); 
+	cyl_node.add(new MeshNode(mat2,model.pop(),cone,null,"bottom base")); 
 	return cyl_node;
 	} 
  function setupWhatToDraw() {  
@@ -80,7 +80,7 @@ function FullCyl(cyl,cone,k){
 	model.init();
 	model.translate( 0, -4, 0);
 	model.scale( 100, 1, 100);
-	var plane = new Node(mat,model.pop(),"base plane",cube); 
+	var plane = new MeshNode(mat,model.pop(),cube,null,"base plane"); 
 	// add objects to scene array
 	scene.push(cylinder);
 	scene.push(plane);
