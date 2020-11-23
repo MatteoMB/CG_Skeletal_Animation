@@ -39,7 +39,7 @@ var Shader = {
         this.program = gl.createProgram();
         gl.attachShader(this.program, vertexShader);
         gl.attachShader(this.program, fragmentShader);
-        // tell webGL where to find attirbutes
+        // tell webGL where to find attributes
         gl.bindAttribLocation( this.program,  posAttributeIndex, "vertexPos" );
         gl.bindAttribLocation( this.program,  normAttributeIndex, "normal" );
         gl.linkProgram(this.program);
