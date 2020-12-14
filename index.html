@@ -3,35 +3,141 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Skeletal animation</title>
-		<style>
-			body,canvas { margin: 0; padding: 0; }
-			canvas { display: block; }
-			div,span {margin: 10px; padding:10px; }
-		</style>
+		<link rel="stylesheet" type="text/css" href="style.css">
 		<script type="text/javascript" src="modules/matrices.js"></script>
 		<script type="text/javascript" src="modules/mesh.js"></script>
 		<script type="text/javascript" src="modules/skinnedMesh.js"></script>
 		<script type="text/javascript" src="modules/matrixStack.js"></script>
 		<script type="text/javascript" src="modules/trackball.js"></script>
 		<script type="text/javascript" src="modules/shader.js"></script>
-		<script type="text/javascript" src="modules/keyframeNode.js"></script>
+		<script type="text/javascript" src="modules/material.js"></script>
+		<script type="text/javascript" src="modules/shaders/blinn-phong.js"></script>
+		<script type="text/javascript" src="modules/shaders/skinnedBlinn-phong.js"></script>
+		<script type="text/javascript" src="modules/graphNodes.js"></script>
 		<script type="text/javascript" src="animationKeyframes.js"></script>
-		<script type="text/javascript" src="blinn-phong.js"></script>
 		<script type="text/javascript" src="main.js"></script>
 	</head>
 	<body> 
-		<canvas 
-		oncontextmenu="return false"
-		id     = "A-CANVAS"
-		width  = "900px"
-		height = "480px"
-		style  = "border: 1px solid black"
-	></canvas>
-	<div>
-		Click on button to toggle animations
-		<span>
-			<input type="button" id="toggleAnimation" onclick="toggleAnimation()" value="Stop animation">
+	<div id="content" >
+		<!-- class="disabled" -->
+		<span id="canvas">
+			<canvas 
+				oncontextmenu="return false"
+				id     = "A-CANVAS"
+				style  = "border: 1px solid black"
+			></canvas>
 		</span>
+		<span id="controls">
+			<div>
+				<span id="light">
+					Directional light orientation:
+					<div>
+						<input type="range" min="-180" max="180" value="0" class="slider" id="yaw" autocomplete="off">
+						<span class="value">Yaw: <span id="yawValue">0</span></span>
+					</div>
+					<div>
+						<input type="range" min="-180" max="180" value="90" class="slider" id="pitch" autocomplete="off">
+						<span class="value">Pitch: <span id="pitchValue">90</span></span>
+					</div>
+				</span>
+				<span id="time-control">
+					<input type="button" id="toggleAnimation" onclick="toggleAnimation()" value="Start animation">
+					<form>
+						<input type="number" id="time-set" name="time-set" value="20" min="1" max="200" required>
+						<input type="button" class="btn" onclick="setAnimationRestart(this)" value="Set restart animation time">
+					</form>
+				</span>
+			</div>
+			<div>
+				<span id="0" class="object">
+					SCENE<input type="button" class ="btn" value="+">
+				</span>
+			</div>
+		</span>
+	</div>
+	<form id="form-add" class="form inactive">
+		<fieldset>
+			<legend>Select your mesh:</legend>
+			<input type="radio" checked="checked" id="empty" name="node-type"  value="empty" onchange="removeLevels()">
+			<label for="empty">Empty node</label><br>
+			<input type="radio" id="cube" name="node-type" value="cube" onchange="removeLevels()">
+			<label for="cube">Cube</label><br>
+			<input type="radio" id="cone" name="node-type" value="cone" onchange="removeLevels()">
+			<label for="cone">Cone</label><br>
+			<input type="radio" id="circle" name="node-type" value="circle" onchange="removeLevels()">
+			<label for="circle">Circle</label><br>
+			<input type="radio" id="cyl" name="node-type" value="cyl" onchange="removeLevels()">
+			<label for="cyl">Cylinder</label><br>
+			<input type="radio" id="f-cyl" name="node-type" value="f-cyl" onchange="removeLevels()">
+			<label for="f-cyl">Cylinder with basis</label><br>
+			<input type="radio" id="sk-cyl" name="node-type" value="sk-cyl" onchange="addLevels()">
+			<label for="sk-cyl">Cylinder with skeleton</label><br>
+			<input type="radio" id="sk-f-cyl" name="node-type" value="sk-f-cyl" onchange="addLevels()">
+			<label for="sk-f-cyl">Cylinder with basis and skeleton</label>
+		</fieldset>
+		<br>  
+		
+		<fieldset id="level-selector" class ="inactive">
+			<legend>Number of bones:</legend>
+			<input type="number" id="levels" name="levels" value="2" min="1" max="200" required>
+		</fieldset>
+		<input type="button" id="newObject" value="Ok" onclick="setElemType()" class="submit-all">
+	</form>
+	<div id="form-transform-container" class="form inactive">
+		<h3>Select the transformations for your node. Click "apply" for each one of them.</h3>
+		<form id="translation">
+			<fieldset>
+				<legend>Translation</legend>
+				<label for="translation-x">X</label>
+				<input type="number" name="translation" id="translation-x" value="0" step="any" required>
+				<label for="translation-y">Y</label>
+				<input type="number" name="translation" id="translation-y" value="0" step="any" required>
+				<label for="translation-z">Z</label>
+				<input type="number" name="translation" id="translation-z" value="0" step="any" required>
+			</fieldset>
+			<fieldset class="time-field inactive">
+				<legend>Time</legend>
+				<input type="number" name="time" id="time-translation" value="0" min="0" step="any" required>
+			</fieldset>
+			<input type="button" value="Apply" class="transform">
+		</form>
+		<form id="rotation">
+			<fieldset>
+				<legend>Rotation</legend>
+				<p class="rotation-description">Axis</p>
+				<label for="rotation-x">X</label>
+				<input type="number" name="rotation" id="rotation-x" value="0" step="any" required>
+				<label for="rotation-y">Y</label>
+				<input type="number" name="rotation" id="rotation-y" value="0" step="any" required>
+				<label for="rotation-z">Z</label>
+				<input type="number" name="rotation" id="rotation-z" value="0" step="any" required>
+				<p class="rotation-description">Degree</p>
+				<input type="number" name="rotation" id="rotation-degree" value="0" step="any" required>
+				<label for="degree">°</label>
+			</fieldset>
+			<fieldset class="time-field inactive">
+				<legend>Time</legend>
+				<input type="number" name="time" id="time-rotation" value="0" min="0" step="any" required>
+			</fieldset>
+			<input type="button" value="Apply" class="transform">
+		</form>
+		<form id="scaling">
+			<fieldset>
+				<legend>Scaling</legend>
+				<label for="scaling-x">X</label>
+				<input type="number" name="scaling" id="scaling-x" value="1" step="any" required>
+				<label for="scaling-y">Y</label>
+				<input type="number" name="scaling" id="scaling-y" value="1" step="any" required>
+				<label for="scaling-z">Z</label>
+				<input type="number" name="scaling" id="scaling-z" value="1" step="any" required>
+			</fieldset>
+			<fieldset class="time-field inactive">
+				<legend>Time</legend>
+				<input type="number" name="time" id="time-scaling" value="0" min="0" step="any" required>
+			</fieldset>
+			<input type="button" value="Apply" class="transform">
+		</form>
+		<input type="button" value="Close" onclick="createNewElement()" id="submit-transforms" class="submit-all">
 	</div>
 </body>
 </html>

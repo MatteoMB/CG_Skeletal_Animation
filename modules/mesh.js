@@ -1,8 +1,8 @@
 /* GpuMesh:
   (indices to buffers holding) a mesh on video card RAM */
 class GpuMesh{
-   constructor(gl, mesh) {
-        this.gl = gl;
+   constructor(shader, mesh) {
+        this.shader = shader;
         this.nTris = mesh.tris.length / 3;
         this.minX = mesh.minX;
         this.maxX = mesh.maxX;
@@ -11,6 +11,7 @@ class GpuMesh{
         this.minZ = mesh.minZ;
         this.maxZ = mesh.maxZ;
   
+        var gl = shader.gl;
         this.bufferVerts = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferVerts );
         gl.bufferData(
@@ -27,20 +28,21 @@ class GpuMesh{
            gl.STATIC_DRAW
         );
    }
-   draw(shader) {
-      var gl = this.gl
+   draw() {
+      var gl = this.shader.gl;
       
       gl.bindBuffer(gl.ARRAY_BUFFER, this.bufferVerts );
-      var posAttributeIndex = gl.getAttribLocation(shader.program, "vertexPos");
+      var posAttributeIndex = gl.getAttribLocation(this.shader.program, "vertexPos");
       gl.enableVertexAttribArray(posAttributeIndex);
       gl.vertexAttribPointer(posAttributeIndex , 
                3, gl.FLOAT , false , 6*4, 0);
 
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufferTris );
-      var normAttributeIndex = gl.getAttribLocation(shader.program, "normal");
+      var normAttributeIndex = gl.getAttribLocation(this.shader.program, "normal");
       gl.enableVertexAttribArray(normAttributeIndex);
       gl.vertexAttribPointer(normAttributeIndex , 
                3, gl.FLOAT , false , 6*4, 3*4);
+               
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufferTris );
       
       gl.drawElements( 
          gl.TRIANGLES, 
@@ -220,26 +222,24 @@ class CpuMesh{
 	// centers and rescales the mesh
 	// invoke AFTER updating AABB
 	autocenterNormalize(){
-		var tr = translationMatrix( 
-		    -(this.minX+this.maxX)/2.0,
-		    -(this.minY+this.maxY)/2.0,
-		    -(this.minZ+this.maxZ)/2.0
-		);
 		var dimX = this.maxX-this.minX;
 		var dimY = this.maxY-this.minY;
 		var dimZ = this.maxZ-this.minZ;
-		var dimMax = Math.max( dimZ, dimY, dimX );
+      var dimMax = Math.max( dimZ, dimY, dimX );
         for (var i=0; i<this.nv(); i++) {
 			this.verts[ i*6 + 0  ] = (this.verts[i*6+0]-(this.minX+this.maxX)/2.0)*2.0/dimMax; // X
 			this.verts[ i*6 + 1  ] = (this.verts[i*6+1]-(this.minY+this.maxY)/2.0)*2.0/dimMax; // Y
 			this.verts[ i*6 + 2  ] = (this.verts[i*6+2]-(this.minZ+this.maxZ)/2.0)*2.0/dimMax; // Z
-		}
-        this.minX = (this.minX-this.maxX)/dimMax;
-        this.maxX = (this.maxX-this.minX)/dimMax;
-        this.minY = (this.minY-this.maxY)/dimMax;
-        this.maxY = (this.maxY-this.minY)/dimMax;
-        this.minZ = (this.minZ-this.maxZ)/dimMax;
-        this.maxZ = (this.maxZ-this.minZ)/dimMax;
+      }
+        var min = this.minX;
+        this.minX = (min-this.maxX)/dimMax;
+        this.maxX = (this.maxX-min)/dimMax;
+        min = this.minY
+        this.minY = (min-this.maxY)/dimMax;
+        this.maxY = (this.maxY-min)/dimMax;
+        min = this.minZ
+        this.minZ = (min-this.maxZ)/dimMax;
+        this.maxZ = (this.maxZ-min)/dimMax;
     }
 
 	// returns the matrix which centers the mesh and scales it 

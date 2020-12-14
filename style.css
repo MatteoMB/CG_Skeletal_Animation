@@ -1,0 +1,93 @@
+*{
+    font-family: Arial, Helvetica, sans-serif;
+}
+html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+}
+#content{
+    width: 100%;
+    height: 480px;
+}
+#canvas {
+    padding: 0px;
+    float: left;
+}
+span{
+    display: inline-block;
+    padding: 5px;
+}
+#controls{
+    float: left;
+    width: 45%;
+}
+#time-control{
+    padding:10px;
+    float: right;
+    height: 117px;
+}
+div,.value{
+    padding:5px;
+}
+.object{
+    border: solid black;
+    font-weight: bold;
+}
+.bone{
+    border: solid grey;
+    font-weight: bold;
+}
+.btn,.transform{
+    font-weight: bold;
+    border-width: 2px;
+    margin: 3px;
+    padding: 0px;
+}
+.inactive{
+    display: none;
+}
+.keyframe{
+    background-color: lightblue;
+}
+.ok{
+    background-color: green;
+    font-weight: 900;
+}
+.disabled{
+    pointer-events: none; 
+}
+.form{
+    position: absolute;
+    top:20%;
+    left:25%;
+    z-index: 1;
+    background-color: CadetBlue;
+}
+input[type=number]{
+    width:50px;
+}
+fieldset{
+    border-width: 5px;
+    display: inline;
+}
+.submit-all{
+    margin: 6px;
+    float: right;
+}
+legend{
+    font-weight: bold;
+}
+.rotation-description{
+    font-weight: 600;
+    font-size: 12pt;
+    margin:0px;
+    display: inline;
+}
+h3{
+    margin-top: 0;
+    font-weight: bold;
+}
+#translation,#rotation,#scaling{
+    width: 700px;
+}

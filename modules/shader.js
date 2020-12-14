@@ -8,13 +8,12 @@ function checkCompilation(gl,shader){
 }
 // generic Shader object,can be instantiated to create different shaders
 class Shader{
-    constructor(gl, vsSource, fsSource){
+    constructor(gl){
         this.gl = gl;
-        this.vsSource= vsSource;
-        this.fsSource= fsSource;
         this.lightOppositeDir= [0,1,0,0];
         // array with uniform locations
         this.loc = [];
+        this.setSources()
         // set the VERTEX SHADER
         var vertexShader = gl.createShader(gl.VERTEX_SHADER);
         gl.shaderSource(vertexShader, this.vsSource);
@@ -33,7 +32,6 @@ class Shader{
         this.bindAttribLocations();
         gl.linkProgram(this.program);
         this.getUniformLocations();
-        this.use();
     }
     // get uniform locations
     getLoc(name){
@@ -49,10 +47,14 @@ class Shader{
     setFloat(name,value){
         this.gl.uniform1f(this.loc[name],value);
     }
+    setInt(name,value){
+        this.gl.uniform1i(this.loc[name],value);
+    }
     setMat4(name,value){
         this.gl.uniformMatrix4fv( this.loc[name], false, new Float32Array(value));
     }
     // empty functions to be overridden in each child shader class
+    setSources(){}
     bindAttribLocations(){}
     getUniformLocations(){}
     setUniforms(){}

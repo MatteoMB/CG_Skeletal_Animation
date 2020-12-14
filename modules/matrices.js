@@ -6,6 +6,9 @@
 
 /* ALL MATRICES ARE IN COLUMN-MAJOR FORMAT  */
 /* ALL ANGLES ARE IN DEGREES                */
+function toRad(deg){
+	return deg * Math.PI / 180;
+}
 
 function identityMatrix() {
 	return [
@@ -16,8 +19,8 @@ function identityMatrix() {
 	];
 }
 function rotationXMatrix( deg ){
-	var s = Math.sin( deg * 3.1415 / 180);
-	var c = Math.cos( deg * 3.1415 / 180);
+	var s = Math.sin( deg * Math.PI / 180);
+	var c = Math.cos( deg * Math.PI / 180);
 	return res = [
 	   1 ,0 ,0 ,0,
 	   0 ,c ,s ,0,
@@ -27,8 +30,8 @@ function rotationXMatrix( deg ){
 }
 
 function rotationYMatrix( deg ){
-	var s = Math.sin( deg * 3.1415 / 180);
-	var c = Math.cos( deg * 3.1415 / 180);
+	var s = Math.sin( deg * Math.PI / 180);
+	var c = Math.cos( deg * Math.PI / 180);
 	return res = [
 	   c ,0 ,-s,0,
 	   0 ,1 ,0 ,0,
@@ -38,8 +41,8 @@ function rotationYMatrix( deg ){
 }
 
 function rotationZMatrix( deg ){
-	var s = Math.sin( deg * 3.1415 / 180);
-	var c = Math.cos( deg * 3.1415 / 180);
+	var s = Math.sin( deg * Math.PI / 180);
+	var c = Math.cos( deg * Math.PI / 180);
 	return res = [
 	   c ,s ,0 ,0,
 	   -s,c ,0 ,0,
@@ -77,7 +80,7 @@ function perspectiveMatrix( focal, aspect, near, far ){
 }
 
 function perspectiveMatrixFOV( fov, aspect, near, far ){
-    var focal = 1.0/Math.tan(fov * 3.1415 / 360);
+    var focal = 1.0/Math.tan(fov * Math.PI / 360);
 	return [
 	   focal/aspect,   0,     0,                      0,
 	   0           ,   focal, 0,                      0,
@@ -181,8 +184,8 @@ function invMatrix4(m) {
 function rotate(axis=vec3(1., 0., 0.), deg=0.0){
 	var ax = normalize(axis);
 	var x = ax[0], y = ax[1], z = ax[2];
-	var s = Math.sin( deg * 3.1415 / 180);
-	var c = Math.cos( deg * 3.1415 / 180);
+	var s = Math.sin( deg * Math.PI / 180);
+	var c = Math.cos( deg * Math.PI / 180);
     var nc = 1 - c;
     return transposeMatrix4([	x*x*nc + c,   x*y*nc - z*s, x*z*nc + y*s, 0,
                     			y*x*nc + z*s, y*y*nc + c,   y*z*nc - x*s, 0,
@@ -274,30 +277,23 @@ function quaternion2AxisAngle(q){
 
 /* Interpolation utilities */
 
-// shortening-code functions
-function key(elem){
-    return Object.keys(elem)[0];
-}
-function val(elem){
-    return Object.values(elem)[0];
-}
 // TRS matrix builder
 function TRS(t,r,s){
-	var m0 = translationMatrix(t[0],t[1],t[2]);
-	var m1 = quaternion2Matrix(r);
-	var m2 = scalingMatrix(s[0],s[1],s[2]);
+	var m0 = t==null? identityMatrix() : translationMatrix(t[0],t[1],t[2]);
+	var m1 = r==null? identityMatrix() : quaternion2Matrix(r);
+	var m2 = s==null? identityMatrix() : scalingMatrix(s[0],s[1],s[2]);
 	return multMatrix(multMatrix(m0,m1),m2);
 }
 // linear interpolation between points
-function lerp(p0,p1,value){
-	var weight = (value-key(p0))/(key(p1)-key(p0));
-	return sum(scalarMult((1-weight),val(p0)),scalarMult(weight,val(p1)));
+function lerp(p0,t0,p1,t1,value){
+	var weight = (value-t0)/(t1-t0);
+	return sum(scalarMult((1-weight),p0),scalarMult(weight,p1));
 }
 // spherical interpolation
-function slerp(q0, q1, value){
-	var weight = (value-key(q0))/(key(q1)-key(q0));
-	var q0 = normalize(val(q0));
-	var q1 = normalize(val(q1));
+function slerp(q0,t0, q1,t1, value){
+	var weight = (value-t0)/(t1-t0);
+	var q0 = normalize(q0);
+	var q1 = normalize(q1);
 	var d = dot(q0, q1);
 	// if negative dot product, the quaternions have opposite handedness
 	// and slerp won't take the shorter path. Fix by reversing one quaternion.
