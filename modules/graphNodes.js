@@ -27,6 +27,7 @@ class TransformKeyframes{
     constructor(){
         this.keyframes = [];
     }
+    // return true if the keyframe exists and -in case- updates it
     push(keyframe){
         var index = this.keyframes.findIndex((el)=>el.time >= keyframe.time);
         if(index < 0){
@@ -128,6 +129,7 @@ class Bone extends Node{
         this.bind = model;
         this.offset = invMatrix4(model);
     }
+    // add a child bone
     addBone(model,name="",keyframes = null){
         var bone = new Bone(model,this.meshNode,name,keyframes);
         super.push(bone);

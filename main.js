@@ -26,11 +26,14 @@
  var elements = {0:scene};
  var nEl = 1;
 
+ // containers of the three main UI blocks
  var content,formAdd,formTransCont;
+ // variables to add a new Node
  var type = null;
  var levels = 0;
- 
+//  meshes in GPU
  var cylinder_mesh,cone_mesh,cube_mesh,circle_mesh;
+ // global variables for UI
  var modelMatrix,parentNode,parentNodeContainer,keyframes;
  var editedNode,editedNodeContainer;
 
@@ -87,11 +90,6 @@ function resizeCanvas() {
 	document.getElementById("0").firstElementChild.addEventListener('click',addFormAdd);
  }
 
-// the matrixStack's global variable model is used to store the current model transformation.
-// however it's NOT used as it is meant to be: the Node constructor stores the model matrix and uses
-// it for all its children. Therefore each child has its own model matrix that starts from identity
-// and matrices are retrieved by pop() function
-
 // draws a cylinder with bases
 function fullCylinder(model,id){
 	var cyl_node = new MeshNode(mat,model,cylinder_mesh,id);
@@ -101,6 +99,7 @@ function fullCylinder(model,id){
 	cyl_node.push(new MeshNode(mat,model,circle_mesh)); 
 	return cyl_node;
 	} 
+// draws a skinned cylinder with bases
 function fullSkeletalCylinder(model,id){
 	var cyl_node = new SkinnedCylinder(shaders[0],mat,model,60,levels,id);
 	model = translationMatrix(0,2,0);
@@ -109,6 +108,7 @@ function fullSkeletalCylinder(model,id){
 	cyl_node.bones[0].push(new MeshNode(mat,model,circle_mesh)); 
 	return cyl_node;
 }
+// setup the meshes
 function setupWhatToDraw() {  
 	// various GPU meshes used by the program
 	cylinder_mesh  = new GpuMesh(shaders[1],new Cylinder(60));
@@ -167,7 +167,6 @@ function setElemType(){
 function setTransform(){
 	if(!this.parentElement.checkValidity())
 		return;
-	// alert the user that the matrix was updated
 	var id = this.parentElement.id
 	var inputs =  document.getElementsByName(id);
 	var vals = [];
@@ -178,6 +177,7 @@ function setTransform(){
 							modelMatrix=multMatrix(rotate(vec3(vals[0],vals[1],vals[2]),vals[3]),modelMatrix); break;
 		case "scaling": 	modelMatrix=multMatrix(scalingMatrix(vals[0],vals[1],vals[2]),modelMatrix); break;
 	}
+	// alert the user that the matrix was updated
 	this.value = "Done!";
 	this.classList.add("ok");
 	this.disabled=true;
@@ -219,6 +219,7 @@ function createNewElement(){
 	let btns = document.getElementsByClassName("transform");
 	for(let i=0; i<btns.length;i++) btns[i].removeEventListener('click',setTransform);
 	content.classList.remove("disabled");
+	// draw
 	if(!animationRequestID)
 		draw(freezeTS);
 }
@@ -307,6 +308,7 @@ function editTransform(){
 function applyTransform(){
 	editedNode.transform = modelMatrix;
 	modelMatrix = identityMatrix();
+	// clean UI and global variables
 	formTransCont.classList.add("inactive");
 	let btns = document.getElementsByClassName("transform");
 	for(let i=0; i<btns.length;i++) btns[i].removeEventListener('click',setTransform);
@@ -318,6 +320,7 @@ function applyTransform(){
 }
 // add a new keyframe
 function addKeyframe(){
+	// setup UI and global variables
 	let btns = document.getElementsByClassName("transform");
 	for(let i=0; i<btns.length;i++) btns[i].addEventListener('click',createKeyframe);
 	let fstime = document.getElementsByClassName("time-field");
@@ -328,12 +331,14 @@ function addKeyframe(){
 	content.classList.add("disabled");
 	formTransCont.classList.remove("inactive");
 }
+// helper function to add a new keyframe button
 function addKeyframeButton(timeVal){
 	var button = addButton(editedNodeContainer);
 	button.classList.add("keyframe");
 	button.addEventListener('click',removeKeyframe);
 	button.value=timeVal.toString();
 }
+// create the keyframe on the UI and in the program
 function createKeyframe(){
 	form = this.parentElement;
 	if(!form.checkValidity()) return;
@@ -369,6 +374,7 @@ function createKeyframe(){
 	this.disabled=false}, 1000);
 	
 }
+// clean UI and global variables
 function closeKeyframeEditor(){
 	let btns = document.getElementsByClassName("transform");
 	for(let i=0; i<btns.length;i++){
@@ -410,9 +416,8 @@ function animate(time){
 	draw(time - pausedTime)
 	// loop forever
 
-	setTimeout(() => {  
-		if(animationRequestID)
-			animationRequestID = requestAnimationFrame(animate);}, 50);
+	if(animationRequestID)
+			animationRequestID = requestAnimationFrame(animate);
 }
 
  // rendering: fill screen buffer

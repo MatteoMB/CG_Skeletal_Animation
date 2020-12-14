@@ -23,8 +23,7 @@ class Blinn_Phong extends Shader{
         varying vec3 norm_i;
         uniform Material material;
         uniform vec3 lightDir; // object space!
-        uniform vec3 halfWay; // object space!
-        uniform vec3 colDiffuse;  // material: different for each object
+        uniform vec3 halfWay; // object space!ì
 
         vec3 lighting( vec3 norm ) {
             float diffuse = max(  dot( norm, lightDir ) , 0.0 );

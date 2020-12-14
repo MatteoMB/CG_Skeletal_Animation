@@ -53,7 +53,6 @@ class Skinned_Blinn_Phong extends Blinn_Phong{
         uniform Material material;
         uniform vec3 lightDir; // object space!
         uniform vec3 halfWay; // object space!
-        uniform vec3 colDiffuse;  // material: different for each object
 
         vec3 lighting( vec3 norm ) {
             float diffuse = max(  dot( norm, lightDir ) , 0.0 );
